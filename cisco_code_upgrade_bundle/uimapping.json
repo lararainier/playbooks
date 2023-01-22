@@ -1,0 +1,39 @@
+{
+	"ColumnMapping":[
+		{
+			"name": "ftppath",
+			"dataType": "String",
+			"label": "ftppath (e.g. ftp://68.141.134.51/out/)"
+		},
+		{
+			"name": "ios_image",
+			"dataType": "String",
+			"label": "ios bin file (e.g. cat9k_iosxe.17.03.05.SPA.bin)"
+		},
+		{
+			"name": "ios_md5",
+			"dataType": "String",
+			"label": "ios md5sum"
+		},
+		{
+			"name": "ios_size",
+			"dataType": "String",
+			"label": "ios size (e.g. 906518831)"
+		},
+		{
+			"name": "ios_version",
+			"dataType": "String",
+			"label": "ios version (e.g. 17.03.05)"
+		},
+		{
+			"name": "ansible_become_pass",
+			"dataType": "String",
+			"label": "Enable password"
+		},
+		{
+			"name": "install_mode",
+			"dataType": "String",
+			"label": "Install (e.g. yes)"
+		}
+	]
+}

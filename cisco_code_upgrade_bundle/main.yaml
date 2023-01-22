@@ -1,0 +1,144 @@
+---
+# Tested on ISR4K 
+- hosts: all 
+  connection: network_cli
+  gather_facts: false
+  vars:
+    flash: "flash"
+  tasks:
+
+  - name: Gather ios facts
+    ios_facts:
+      gather_subset: "all"
+    register: result
+    tags: facts
+    vars:
+      ansible_command_timeout: 120
+
+  - name: Device Info
+    debug:
+      msg: |
+        Hostname: {{ result.ansible_facts.ansible_net_hostname }}, Model: {{ result.ansible_facts.ansible_net_model }}, Version: {{ result.ansible_facts.ansible_net_version }} Upgrade to: {{ios_version}} / {{ios_image}} stacked_models: {{result.ansible_facts.ansible_net_stacked_models |default({}) | join(";")}}
+    tags:
+      - facts
+      - debug
+
+  - name: Upgrade if devices is not running Upgraded image and is defined
+    block:
+
+    - name: Check files on the Flash
+      ios_command:
+          commands:
+            - command: "dir flash:"
+      register: dir_result
+
+    - name: Check Free Space
+      ansible.builtin.assert:
+        that:
+          - (ansible_net_filesystems_info[ansible_net_filesystems[0]].spacefree_kb * 0.90) > (ios_size | int / 1000)
+        fail_msg: "We don't have enough disk space to copy image: Free: {{ansible_net_filesystems_info[ansible_net_filesystems[0]].spacefree_kb / 1000 }} Required: {{ios_size | int / 1000 / 1000 }}"
+        quiet: true
+      when: 'ios_image not in dir_result.stdout[0]'
+    
+    - name: Copy IOS image to flash
+      ios_command:
+        commands:
+          - command: "copy {{ ftppath }}{{ ios_image }} flash:"
+            prompt: "{{ ios_image }}"
+            answer: "\r"
+      vars:
+        ansible_command_timeout: 18000
+      when: 'ios_image not in dir_result.stdout[0]'
+
+    - name: Verify MD5 of the image
+      ios_command:
+          commands:
+            - command: "verify /md5 flash:{{ ios_image }}"
+      register: md5_result
+      vars:
+        ansible_command_timeout: 600
+
+    - name: Check MD5 agains database
+      ansible.builtin.assert:
+        that:
+          - 'ios_md5 in md5_result.stdout[0]'
+        fail_msg: "Md5 checkusm does not match"
+        success_msg: "Md5 checkusm is successful"
+        quiet: true
+
+
+    ####
+    ####    - Installation process
+    ####
+  #   - name: UNSET SYSTEM FLASH "No boot system"
+  #     ios_config:
+  #       commands:
+  #         - "no boot system"
+  #     tags: boot
+  #     when: install_mode == "yes"
+
+  #   - name: SET BOOT SYSTEM FLASH for Group 1 Devices (Cisco 800)  boot system <bootflash> <image>
+  #     ios_config:
+  #       commands:
+  #         - "boot system {{ flash }} {{ new_ios_bin.image }}"
+  #     when:
+  #       - result.ansible_facts.ansible_net_model == 'C891F-K9' or result.ansible_facts.ansible_net_model == 'C892FSP-K9'
+  #       - install_mode == "yes"
+  #     tags: boot
+
+  #   - name: SET BOOT SYSTEM FLASH for Group 2 Devices (Cisco isr4k, Catalyst, etc.) boot system <bootflash>:<image>
+  #     ios_config:
+  #       commands:
+  #         - "boot system {{ flash }}:{{ new_ios_bin.image }}"
+  #     when:
+  #       - result.ansible_facts.ansible_net_model != 'C891F-K9' 
+  #       - result.ansible_facts.ansible_net_model != 'C892FSP-K9'
+  #       - install_mode == "yes"
+  #     tags: boot
+
+  #   - name: Save Configuration
+  #     ios_config:
+  #       save_when: always
+  #     tags: save
+  #     tags: boot
+  #     when: install_mode == "yes"
+
+  #   - name: reload at 
+  #     ios_command:
+  #       commands:
+  #         - command: "reload at {{ reload_at }} reason IOS Upgrade to:{{ new_ios_bin.name }} ({{ new_ios_bin.image }}) from: {{ result.ansible_facts.ansible_net_version }}"
+  #           prompt: "confirm"
+  #           answer: "y"
+  #     when:
+  #       - reload_at is defined
+  #       - install_mode == "yes"
+
+  #   - name: Wait for the Switch to Boot with new image
+  #     wait_for:
+  #       port: 22
+  #       state: started
+  #       timeout: 1800
+  #       delay: 15
+  #       host: '{{ ansible_host }}'
+  #     delegate_to: localhost
+  #     when: install_mode == "yes"
+  #   when:
+  #     #- ios[result.ansible_facts.ansible_net_model] is defined
+  #     - ios_version != ansible_net_version
+
+  # - name: Gather new ios facts
+  #   ios_facts:
+  #     gather_subset: "all"
+  #   register: new_result
+  #   tags: facts
+  #   when: install_mode == "yes"
+
+  # - name: Check Switch has booted with New Image
+  #   ansible.builtin.assert:
+  #     that:
+  #       - 'new_result.ansible_facts.ansible_net_version == ios_version'
+  #     fail_msg: "Target image: {{ios_version}}, Running Image {{new_result.ansible_facts.ansible_net_version}}"
+  #     success_msg: "Switch is running target image"
+  #     quiet: true
+  #   when: install_mode == "yes"
+

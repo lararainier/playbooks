@@ -1,0 +1,13 @@
+   - name: Retrieve location entities from API for all shortnames in the exception list
+     uri:
+       url: "{{ VCATS_DEVICE_ATTRS_BASE_URL }}inventory-search?invlvl=OPS&pageSize=50&shortName={{ item }}&dnsEntityName=-{{ DNSlocation }}-"
+       method: GET
+       return_content: yes
+     register: cinfo_entity_list
+     delegate_to: localhost
+     ignore_errors: true
+     loop: "{{ shortnameExceptions }}"
+
+   - set_fact:
+       entities: "{{ cinfo_entity_list.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('devices','defined') |  sum(attribute='devices', start=[]) }}"
+     when: "DNSshortname in shortnameExceptions"

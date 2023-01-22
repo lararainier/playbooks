@@ -1,0 +1,21 @@
+---
+  - name Merge the user provided prefix-lists with the existing running configuration
+  hosts: all
+  connection: network_cli
+  gather_facts: false
+
+ tasks:
+ - name: Merge Cisco IOS XE provided Prefix lists configuration
+   cisco.ios.ios_prefix_lists:
+     config:
+       - afi: {{afi}}
+         prefix_lists:
+           - name: {{name}}
+             entries:
+               - action: {{action}}
+                 prefix: {{prefix}}
+                 ge: {{ge}}
+                 le: {{le}}
+                 sequence: {{sequence}}
+     state: merged
+   when: ansible_network_os == 'cisco.ios.ios'

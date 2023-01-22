@@ -1,0 +1,12 @@
+Management IP Address,DNS Entity Name,reload_time,ftppath,ios_image,ios_md5,ios_version
+192.168.31.132,deapega-prg4pega-2977557e001,12/10/21 21:00,scp://sa:sasa123@192.168.31.101//home/sa/,c2960cx-universalk9-mz.152-7.E4.bin,a869db8d8c6f7e1c608c0d710f7e3314,15.2.7E4
+192.168.31.133,deapega-prg7pega-3007155e002,12/10/21 21:00,scp://sa:sasa123@192.168.31.101//home/sa/,isr4300-universalk9.03.16.05.S.155-3.S5-ext.SPA.bin,6372A8A7D16A96D5B7A5C1999DE733BDA5564AA4,16.05.S.155-3.S5
+192.168.31.7,deapega-testpega-2971035e001,12/10/21 21:00,scp://sa:sasa123@192.168.31.101//home/sa/,c1100-universalk9_ias.16.12.05.SPA.bin,3b0eab453e08a351f003d83140e8d6cb,16.12.05
+,,,,,,
+,,,,,,
+,,,,isr4300-universalk9.03.16.05.S.155-3.S5-ext.SPA.bin,6372A8A7D16A96D5B7A5C1999DE733BDA5564AA4,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,isr4300-universalk9.16.12.05.SPA.bin,498A2231D82D32FE9185D7AB2183A382E8C358BF,16.12.05

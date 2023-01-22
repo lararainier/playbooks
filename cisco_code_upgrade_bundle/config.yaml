@@ -1,0 +1,31 @@
+attributes:
+ - key: ansible_connection
+   source: CINFO
+ - key: ansible_user
+   source: CINFO
+ - key: ansible_password
+   source: CINFO
+ - key: ansible_become
+   source: REQUEST
+ - key: ansible_become_method
+   source: REQUEST
+ - key: ansible_become_password
+   source: REQUEST
+ - key: ansible_authorize
+   source: REQUEST
+ - key: ansible_auth_pass
+   source: CINFO
+ - key: ansible_network_os
+   source: CINFO
+sourceFiles:
+ - VCATS_ansible/common
+defaultAttributes:
+ - key: ansible_connection
+   defaultValue: network_cli
+ - key: ansible_network_os
+   defaultValue: ios
+ - key: ansible_become_method
+   defaultValue: enable
+ - key: ansible_become
+   defaultValue: "yes"
+
