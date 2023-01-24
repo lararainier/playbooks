@@ -1,0 +1,38 @@
+---
+- name: Set user name
+  set_fact:
+    username: "{{user_name}}"
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp user
+  register: output
+- name: Process output
+  set_fact:
+    user_full_list: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_user.textfsm') }}"
+- name: Setting value
+  set_fact:
+    user_list1: "{{user_list1}} + ['{{user_full_list[myidx]['''USER_NAME''']}}']"
+  loop: "{{ user_full_list}}"
+  loop_control:
+    index_var: myidx
+- name: view user_list1
+  debug:
+    msg: "{{ user_list1 }}"
+- name: check for presence of our username
+  include_tasks: mainv3_add.yml
+  when:  username not in user_list1 and new_user_name==""
+- name: Delete the user if already present
+  include_tasks: mainv3_delete.yml
+  when:  username in user_list1 and new_user_name ==""
+- name: Fail for modify
+  fail:
+    msg: User not present for modification
+  when:  username not in user_list1 and new_user_name !=""
+- name: Modify the user
+  include_tasks: mainv3_modify.yml
+  when:  username in user_list1 and new_user_name !=""
+
+
+
+

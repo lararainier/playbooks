@@ -1,0 +1,54 @@
+---
+- name: Create group for AuthPriv
+  ios_config:
+    lines:
+    - snmp-server group "{{ groupname }}" v3 priv read "{{ viewname }}" write "{{ viewname}}"  access {{ access_list }}
+  when: groupName == "" and user_SNMPLevel == "authpriv"
+- name: Create group for noAuthnoPriv
+  ios_config:
+    lines:
+    - snmp-server group "{{ groupname }}" v3 noauth read "{{ viewname }}" write "{{ viewname}}"  access {{ access_list }}
+  when: groupName == "" and user_SNMPLevel == "noAuthnoPriv"
+- name: Create group for AuthnoPriv
+  ios_config:
+    lines:
+    - snmp-server group "{{ groupname }}" v3 auth read "{{ viewname }}" write "{{ viewname}}"  access {{ access_list }}
+  when: groupName == "" and user_SNMPLevel == "authNopriv"
+- set_fact:
+    groupName: "{{ groupname }}"
+- name: Group change|AuthPriv with access list
+  ios_config:
+    lines:
+    - snmp-server user "{{username }}" "{{groupName}}" v3 auth {{ authprotocol }} "{{ user_SNMPV3Pass}}" priv {{ user_SNMPPrivProtocol}} "{{ user_SnmpPrivPassword }}" access {{ access_list }}
+
+  when: user_SNMPLevel == "authpriv"
+- name: SNMP password change|noAuthnoPriv with access list
+  ios_config:
+    lines:
+    - snmp-server user "{{ username }}" "{{ groupName }}" v3 access {{ access_list }}
+  when: user_SNMPLevel == "noAuthnoPriv"
+- name: SNMP username/password change |AuthNoPriv with access list
+  ios_config:
+    lines:
+    - snmp-server user "{{ username }}" "{{ groupName }}" v3 auth {{ authprotocol }} "{{user_SNMPV3Pass}}" access {{ access_list }}
+  when: user_SNMPLevel == "authNopriv"
+- name: Start post check
+  ios_command:
+    commands:
+    - show snmp user
+  register: output
+- name: Process output
+  set_fact:
+    add_user_var: "{{ output.stdout[0] | regex_search( username | string )}}"
+- name: If config changes failed
+  include: ../../../../common/Rollback_tftp.yml
+  when: add_user_var == ""
+- name: Confirm configuration
+  ios_command:
+    commands:
+      - configure confirm
+- name: Write to startup config
+  ios_command:
+    commands:
+    - write memory
+  when: add_user_var != ""

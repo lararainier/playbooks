@@ -1,0 +1,21 @@
+---
+- name: Accessibility check
+  include_tasks: '{{base_path}}/common/accessiblity_check.yml'
+- name: Duplicate IP check
+  include_tasks: '{{base_path}}/common/duplicate_ip_check.yml'
+  when: SN_CINFO is defined
+- name: Health check
+  include_tasks: '{{base_path}}/common/{{item.value.HEALTH_PLAYBOOK}}'
+  loop: "{{ lookup('dict', modelvalues) }}"
+  when: model | regex_search(item.key | string)
+- name: SNMP Walk
+  include_tasks: '{{base_path}}/common/SNMP_WALK.yml'
+#- name: SAVE & BACKUP CONFIGURATION
+#  include_tasks: '{{base_path}}/common/backup.yml'
+- name: SNMP V3 add
+  include_tasks: pretestv3.yml
+  when: iscustomer == "false"
+- name: SNMP V3 add for customer request
+  include_tasks: custpretestv3.yml
+  when: iscustomer != "false"
+

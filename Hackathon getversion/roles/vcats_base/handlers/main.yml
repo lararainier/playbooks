@@ -1,0 +1,9 @@
+---
+# Handlers for VCATS Output
+
+- name: Write output to output.dat
+  include_tasks: tasks/output.yml
+
+- name: Write VCATS output to output.dat
+  include_tasks: tasks/output_vcats.yml
+

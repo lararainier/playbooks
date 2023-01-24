@@ -1,0 +1,15 @@
+modelvalues:
+  "WS-C3850-48T":
+     HEALTH_PLAYBOOK: switch_check.yml
+  "WS-C2960CX-8TC-L":
+     HEALTH_PLAYBOOK: switch_check.yml
+  "ISR4331/K9":
+     HEALTH_PLAYBOOK: router_check.yml
+  "C1111-8PWE":
+     HEALTH_PLAYBOOK: router_check.yml
+  "1812":
+     HEALTH_PLAYBOOK: env_checkC1812.yml
+  "1841":
+     HEALTH_PLAYBOOK: env_checkC1841.yml
+  "C819G-4G-G-K9":
+     HEALTH_PLAYBOOK: env_checkC819G.yml

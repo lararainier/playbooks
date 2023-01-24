@@ -1,0 +1,62 @@
+---
+- name: Set user name for modification
+  set_fact:
+    username: "{{ new_user_name }}"
+- name: Set access list for Customer request
+  set_fact:
+    access_list: 52
+- name: get group name
+  ios_command:
+    commands:
+      - show snmp group
+  register: snmp_res
+- set_fact:
+    group_list: "{{ snmp_res.stdout[0]| parse_cli_textfsm(base_path+'/common/cisco_ios_group.template')  }}"
+- name: Checking for VZ group
+  set_fact:
+    grouplist: "{{grouplist}} + ['{{ item['''GROUP_NAME'''] }}']"
+  with_items: "{{ group_list }}"
+- name: Checking for group
+  set_fact:
+    groupName: "{{group_name}}"
+  when: item == group_name
+  with_items: "{{grouplist}}"
+- name: Get all views
+  ios_command:
+    commands:
+    - show snmp view
+  register: view_output
+- name: check for standard view
+  set_fact:
+    view_var: "{{ view_output.stdout[0] | regex_search(view_name | string) }}"
+- name: Create view
+  ios_config:
+    lines:
+    - snmp-server view "{{ view_name }}" iso included
+  when: view_var == ""
+- set_fact:
+    viewname: "{{ view_name }}"
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp user
+  register: output
+- name: Process output
+  set_fact:
+    user_full_value: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_user.textfsm') }}"
+- name: Setting value
+  set_fact:
+    user_list: "{{user_list}} + ['{{user_full_value[myidx]['''USER_NAME''']}}']"
+  loop: "{{ user_full_value}}"
+  loop_control:
+    index_var: myidx
+- name: view user_list
+  debug:
+    msg: "{{ user_list }}"
+- name: check for presence of our username
+  fail:
+    msg: Username already exist
+  when:  username in user_list
+- name: Continue V3 add
+  import_tasks: custsnmpv3modify.yml
+

@@ -1,0 +1,79 @@
+---
+- name: Set community string for updation
+  set_fact:
+    username: "{{ new_user_name }}"
+- name: Get all access list present
+  ios_command:
+    commands:
+    - show ip access-list
+  register: acl_var
+- name: checking output for named access list
+  set_fact:
+    vz_acl_check: "{{ acl_var.stdout[0] | regex_search( 'VZ_SNMP' | string) }}"
+- name: checking output for numbered access list
+  set_fact:
+    vz_acl_num: "{{ acl_var.stdout[0] | regex_search( '51' | string) }}"
+- name: Set access list for Verizon request
+  set_fact:
+    access_list: "{{vz_acl_check}}"
+  when: vz_acl_check != ""
+- name: Set numbered access list
+  set_fact:
+    access_list: "{{vz_acl_num}}"
+  when: vz_acl_check == "" and vz_acl_num != ""
+- name: get group name
+  ios_command:
+    commands:
+      - show snmp group
+  register: snmp_res
+- set_fact:
+    group_list: "{{ snmp_res.stdout[0]| parse_cli_textfsm(base_path+'/common/cisco_ios_group.template')  }}"
+- name: Checking for VZ group
+  set_fact:
+    grouplist: "{{grouplist}} + ['{{ item['''GROUP_NAME'''] }}']"
+  with_items: "{{ group_list }}"
+- name: Checking for standard VZ group
+  set_fact:
+    groupName: VzB-RW
+  when: item == "VzB-RW"
+  with_items: "{{grouplist}}"
+- name: Get all views
+  ios_command:
+    commands:
+    - show snmp view
+  register: view_output
+- name: check for standard view
+  set_fact:
+    view_var: "{{ view_output.stdout[0] | regex_search('BLOCK' | string) }}"
+- name: Create view
+  ios_config:
+    lines:
+    - snmp-server view BLOCK iso included
+  when: view_var == ""
+- set_fact:
+    viewname: BLOCK
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp user
+  register: output
+- name: Process output
+  set_fact:
+    user_full_value: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_user.textfsm') }}"
+- name: Setting value
+  set_fact:
+    user_list: "{{user_list}} + ['{{user_full_value[myidx]['''USER_NAME''']}}']"
+  loop: "{{ user_full_value}}"
+  loop_control:
+    index_var: myidx
+- name: view user_list
+  debug:
+    msg: "{{ user_list }}"
+- name: check for presence of our username
+  fail:
+    msg: Username already exist
+  when:  username in user_list
+- name: Continue V3 add
+  import_tasks: snmpv3modify.yml
+
+

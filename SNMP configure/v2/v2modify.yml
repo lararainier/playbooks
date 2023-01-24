@@ -1,0 +1,5 @@
+---
+- name: Modify community string present
+  include: pretestv2delmodify.yml
+- include: pretestv2modify.yml
+

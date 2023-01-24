@@ -1,0 +1,27 @@
+- name: Confirm configuration
+  ios_command:
+    commands:
+      - configure confirm
+- name: Write to startup config
+  ios_command:
+    commands:
+    - write memory
+- name: verify startup config
+  ios_command:
+    commands:
+    - show startup-config | sec snmp
+  register: startup_output
+- name: search in result
+  set_fact:
+    start_snmp_var: "{{ startup_output.stdout[0] | regex_search( comm_string | string )}}"
+- debug:
+    msg: "{{start_snmp_var}}"
+- name: Verify startup config result
+  fail:
+    msg: Start up config write failed
+  when: start_snmp_var != comm_string
+- name: If successfully modified
+  debug:
+    msg: Successfully modified in startup config
+  when: start_snmp_var == comm_string
+

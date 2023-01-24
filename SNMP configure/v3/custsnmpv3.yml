@@ -1,0 +1,64 @@
+---
+- debug:
+    msg: "{{ groupName}}"
+- name: Create group for AuthPriv level and read mode
+  ios_config:
+    lines:
+    - snmp-server group "{{ group_name }}" v3 priv read "{{ view_name }}" access {{ access_list }}
+  when: groupName == "" and user_SNMPLevel == "authpriv" 
+- name: Create group for noAuthnoPriv level and read mode
+  ios_config:
+    lines:
+    - snmp-server group "{{ group_name }}" v3 noauth read "{{ view_name }}" access {{ access_list }}
+  when: groupName == "" and user_SNMPLevel == "noAuthnoPriv" 
+- name: Create group for AuthnoPriv level and read mode
+  ios_config:
+    lines:
+    - snmp-server group "{{ group_name }}" v3 auth read "{{ view_name }}" access {{ access_list }}
+  when: groupName == "" and user_SNMPLevel == "authNopriv" 
+# - name: Create group for AuthPriv and write mode
+#   ios_config:
+#     lines:
+#     - snmp-server group "{{ group_name }}" v3 priv read "{{ view_name }}" write "{{ view_name}}"  access {{ access_list }}
+#   when: groupName == "" and user_SNMPLevel == "authpriv" and write_access == "true"
+# - name: Create group for noAuthnoPriv and write mode
+#   ios_config:
+#     lines:
+#     - snmp-server group "{{ group_name }}" v3 noauth read "{{ view_name }}" write "{{ view_name}}"  access {{ access_list }}
+#   when: groupName == "" and user_SNMPLevel == "noAuthnoPriv" and write_access == "true"
+# - name: Create group for AuthnoPriv and write mode
+#   ios_config:
+#     lines:
+#     - snmp-server group "{{ group_name }}" v3 auth read "{{ view_name }}" write "{{ view_name}}"  access {{ access_list }}
+#   when: groupName == "" and user_SNMPLevel == "authNopriv" and write_access == "true"
+- name: Group change|AuthPriv with access list
+  ios_config:
+    lines:
+    - snmp-server user "{{username }}" "{{group_name}}" v3 auth {{ authprotocol }} "{{ user_SNMPV3Pass }}" priv {{ user_SNMPPrivProtocol }} "{{ user_SnmpPrivPassword }}" access {{ access_list }}
+  when: user_SNMPLevel == "authpriv"
+- name: SNMP password change|noAuthnoPriv with access list
+  ios_config:
+    lines:
+    - snmp-server user "{{username }}" "{{ group_name }}" v3 access {{ access_list }}
+  when: user_SNMPLevel == "noAuthnoPriv"
+- name: SNMP username/password change |AuthNoPriv with access list
+  ios_config:
+    lines:
+    - snmp-server user "{{username }}" {{ group_name }} v3 auth {{ authprotocol }} "{{ user_SNMPV3Pass }}" access {{ access_list }}
+  when: user_SNMPLevel == "authNopriv"
+- name: Start post check
+  ios_command:
+    commands:
+    - show snmp user
+  register: output
+- name: Process output
+  set_fact:
+    add_user_var: "{{ output.stdout[0] | regex_search( username | string )}}"
+- name: If config changes failed
+  include: ../../../../common/Rollback_tftp.yml
+  when: add_user_var == ""
+- name: Write to startup config
+  ios_command:
+    commands:
+    - write memory
+  when: add_user_var != ""

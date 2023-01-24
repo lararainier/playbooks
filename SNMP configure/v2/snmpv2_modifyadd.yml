@@ -1,0 +1,23 @@
+---
+- name: SNMP community string add
+  ios_config:
+    lines:
+    - snmp-server community "{{ comm_string }}" {{mode}} {{access_list}}
+- name: Start post check
+  ios_command:
+    commands:
+    - show snmp community
+  register: output
+- name: Process result
+  set_fact:
+    add_user_var: "{{ output.stdout[0] | regex_search( comm_string | string )}}"
+- name: see value
+  debug:
+    msg: "{{ add_user_var }}"
+- name: If config changes failed
+  include: '{{base_path}}/common/rollback.yml'
+  when: add_user_var == ""
+- name: Write to startup config
+  include: writememmodify.yml
+  when: add_user_var != ""
+

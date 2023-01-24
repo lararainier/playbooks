@@ -1,0 +1,29 @@
+# Set the paths for the 3 output files for VCATS
+# For details, see https://oneconfluence.verizon.com/display/GCT/Playbook+output
+#
+# The playbook result status and main output goes into output.dat
+outfile: "./output/output.dat"
+
+# Detailed information can be stored in the debugfile
+debugfile: "./output/stdout.log"
+
+# Any errors can be recorded in the errors.log
+errorfile: "./output/errors.log"
+
+# Comment separator for output sent to ETMS
+ETMS_NEW_CMT: "=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+"
+
+# VCATS Output type can be direct, vcats or etms
+vcats_output_type: 'direct'
+
+# VCATS Result status
+vcats_status: "Success"
+
+# VCATS Output
+vcats_output: ""
+
+# VCATS Errors for the errorfile
+vcats_error: ""
+
+# VCATS Logs for the debugfile
+vcats_log: ""

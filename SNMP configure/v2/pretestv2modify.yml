@@ -1,0 +1,61 @@
+---
+- name: Set community string for updation
+  set_fact:
+    comm_string: "{{ new_community_string }}"
+- name: Get all access list present
+  ios_command:
+    commands:
+    - show ip access-list
+  register: acl_var
+- name: checking output for named access list
+  set_fact:
+    vz_acl_check: "{{ acl_var.stdout[0] | regex_search( 'VZ_SNMP' | string) }}"
+- name: checking output for numbered access list
+  set_fact:
+    vz_acl_num: "{{ acl_var.stdout[0] | regex_search( '51' | string) }}"
+- name: Set access list
+  set_fact:
+    access_list: "{{vz_acl_check}}"
+  when: vz_acl_check != "" and iscustomer == "false"
+- name: Set numbered access list
+  set_fact:
+    access_list: "{{vz_acl_num}}"
+  when: vz_acl_check == "" and vz_acl_num != "" and iscustomer == "false"
+- name: Set access list for customer request
+  set_fact:
+    access_list: 52
+  when: iscustomer == "true"
+- name: Set mode for customer request
+  set_fact:
+    mode: RO
+  when: iscustomer == "true"
+- name: Set mode for verizon request
+  set_fact:
+    mode: RW
+  when: iscustomer == "false"
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp community
+  register: output
+- name: Process output
+  set_fact:
+    community_full_value: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_community.textfsm') }}"
+#  - debug:
+#      msg: "{{ community_full_value }}"
+- name: setting value
+  set_fact:
+    community_list: "{{community_list}} + ['{{community_full_value[myidx]['''SECURITY_NAME''']}}']"
+  loop: "{{ community_full_value}}"
+  loop_control:
+    index_var: myidx
+- name: fetching unique community_list
+  set_fact:
+    unique_list: "{{ community_list | unique }}"
+- name: check for presence of our community string
+  fail:
+    msg: Community string already exist
+  when:  comm_string in unique_list
+- name: Continue V2 add
+  import_tasks: snmpv2_modifyadd.yml
+

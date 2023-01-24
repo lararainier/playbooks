@@ -1,0 +1,16 @@
+{
+"iscustomer": "false",                  
+"user_name": "v2",
+"user_SNMPV3Pass": "authpass14",
+"user_SNMPPrivProtocol": "des",
+"user_SnmpPrivPassword":"privpasstest",
+"user_SNMPAuthProtocol":"md5",
+"user_SNMPLevel": "authNopriv",  
+"new_user_name": "",          
+"SN_CINFO": "FDO2218A1ER",
+"HN_CINFO": "Prague_Lab_CMDS_CE1",
+"MgmtIP": 192.168.31.5,
+"group_name": "custgroup",              
+"view_name": "custview"                
+}
+

@@ -1,0 +1,35 @@
+---
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp community
+  register: output
+- name: Process output
+  set_fact:
+    community_full_value1: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_community.textfsm') }}"
+- name: setting value
+  set_fact:
+    common_community_list: "{{common_community_list}} + ['{{community_full_value1[myidx]['''SECURITY_NAME''']}}']"
+  loop: "{{ community_full_value1}}"
+  loop_control:
+    index_var: myidx
+- name: fetching unique community_list
+  set_fact:
+    unique_list: "{{ common_community_list | unique }}"
+- debug:
+    msg: "{{unique_list }}"
+- name: check for presence of our community string
+  include_tasks: mainv2_delete.yml
+  when: community_string in unique_list and new_community_string==""
+- name: If not present add the community string
+  include_tasks: mainv2_add.yml
+  when: community_string not in unique_list and new_community_string==""
+- name: Fail for modify
+  fail:
+    msg: Community string not present for modification
+  when: community_string not in unique_list and new_community_string!=""
+- name: For modify
+  include_tasks: mainv2_modify.yml
+  when: community_string in unique_list and new_community_string!=""
+
+

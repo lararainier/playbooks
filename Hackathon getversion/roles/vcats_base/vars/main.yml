@@ -1,0 +1,23 @@
+---
+# Make VCATS environmental variables directly available as normal vars
+VCATS_INV_WS: "{{ lookup('env', 'VCATS_INV_WS') | default('.', true) }}"
+VCATS_DEVICE_ATTRS_BASE_URL : "{{ lookup('env', 'VCATS_DEVICE_ATTRS_BASE_URL') | default('localhost', true) }}"
+
+# Extract shortname and location form DNSEntityName
+DNSshortname: "{{ DNSEntityName | regex_search('^(.*?)-.*-.*$', '\\1') | first }}"
+DNSlocation: "{{ DNSEntityName | regex_search('^.*-(.*?)-.*$', '\\1') | first }}"
+
+# Set the paths for the 3 output files for VCATS and add the ETMS comment separator
+# For details, see https://oneconfluence.verizon.com/display/GCT/Playbook+output
+#
+# The playbook result status and main output goes into output.dat
+outfile: "{{ lookup('env', 'VCATS_INV_WS') | default('.', true) }}/output/output.dat"
+
+# Detailed information can be stored in the debugfile
+debugfile: "{{ lookup('env', 'VCATS_INV_WS') | default('.', true) }}/output/stdout.log"
+
+# Any errors can be recorded in the errors.log
+errorfile: "{{ lookup('env', 'VCATS_INV_WS') | default('.', true) }}/output/errors.log"
+
+# Comment separator for output sent to ETMS
+ETMS_NEW_CMT: "=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+"

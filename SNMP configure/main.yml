@@ -1,0 +1,61 @@
+
+
+- hosts: all
+  gather_facts: no
+  serial: 30
+  max_fail_percentage: 100
+  vars_files:
+    - health.yml
+    - domain.yml
+  vars:
+    outfile: "{{ lookup('env', 'VCATS_INV_WS')| default(playbook_dir) }}/output.dat"    
+    user_list1: []
+    user_list: []
+    user_dict: {}
+    user_list_del: []
+    my_list: [{}]
+    users_list: []
+    configured: "false"
+    authprotocol: "{{ user_SNMPAuthProtocol | default('md5')}}"
+    base_path: ../../../../VCATS_ansible
+    grouplist: []
+    groupName: ""
+    groupname: VzB-RW
+    common_community_list: []
+    community_list_del: []
+    community_list: []
+  tasks:
+  - name: execution block
+    block:
+      - name: Login Local & Setting variable
+        local_action: command hostname -f
+        delegate_to: localhost
+        register: hostname
+      - name: set variable
+        set_fact:
+          domain: "{{hostname.stdout_lines[0]}}"
+      - name: Show Domain
+        debug:
+          msg: Domain is {{domain}}
+      - name: Set values
+        set_fact:
+          snmp_server_1: "{{ item.value.VZ_TRAP_HOST1}}"
+          snmp_server_2: "{{ item.value.VZ_TRAP_HOST2 }}"
+          tacacs_server_1: "{{ item.value.TACACS_PDC_SERVER }}"
+          tacacs_server_2: "{{ item.value.TACACS_NDC_SERVER }}"
+        loop: "{{ lookup('dict', domainvalues) }}"
+        when: domain | regex_search(item.key | string)
+      - name: SAVE & BACKUP CONFIGURATION
+        include_tasks: '{{base_path}}/common/Backup_tftp.yml'
+      - name: Routing for v2 request
+        import_tasks: v2/main.yml
+        when: community_string is defined
+      - name: Routing to v3 request
+        import_tasks: v3/main.yml
+        when: user_name is defined
+    rescue:
+     - name: set failure output     
+       set_fact:
+         output_status: "Failed#Failed task ''{{ansible_failed_task.name}}'', {{ansible_failed_result | to_json(ensure_ascii=False) }}"
+   
+

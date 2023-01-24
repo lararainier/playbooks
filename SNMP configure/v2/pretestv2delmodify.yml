@@ -1,0 +1,37 @@
+---
+- name: Setting community string
+  set_fact: 
+    existing_community_string: "{{ community_string }}"
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp community
+  register: output
+- name: Process output
+  set_fact:
+    community_full_value: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_community.textfsm') }}"
+- name: setting value
+  set_fact:
+    community_list_del: "{{community_list_del}} + ['{{community_full_value[myidx]['''SECURITY_NAME''']}}']"
+  loop: "{{ community_full_value}}"
+  loop_control:
+    index_var: myidx
+- name: fetching unique community_list
+  set_fact:
+    unique_list: "{{ community_list_del | unique }}"
+- name: check for presence of our community string
+  fail:
+    msg: Community string not present for deletion
+  when: existing_community_string not in unique_list
+- name: Finding number of community string present
+  set_fact:
+    list_length: "{{ unique_list | length }}"
+- name: check atleast one string present
+  fail:
+    msg: Cannot delete the last community string present
+  when: list_length == "1"
+- name: Continue V2 delete
+  ios_config:
+    lines:
+    - no snmp-server community "{{ existing_community_string }}"
+

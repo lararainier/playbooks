@@ -1,0 +1,36 @@
+---
+- name: Delete AuthPriv config
+  ios_config:
+    lines:
+    - no snmp-server user "{{del_user_name }}" "{{groupname}}" v3 auth "{{ user_SNMPAuthProtocol | default('md5') }}" "{{user_SNMPV3Pass}}" priv "{{user_SNMPPrivProtocol }}" "{{user_SnmpPrivPassword}}"
+  when: user_SNMPLevel == "authpriv"
+- name: Delete noAuthnoPriv config
+  ios_config:
+    lines:
+    - no snmp-server user "{{ del_user_name }}" "{{ groupname }}" v3
+  when: user_SNMPLevel == "noAuthnoPriv"
+- name: Delete AuthNoPriv config
+  ios_config:
+    lines:
+    - no snmp-server user "{{ del_user_name}}" "{{ groupname }}" v3 auth "{{ user_SNMPAuthProtocol | default('md5')}}" "{{ user_SNMPV3Pass }}"
+  when: user_SNMPLevel == "authNopriv"
+- name: Start post check
+  ios_command:
+    commands:
+    - show snmp user
+  register: output
+- name: Process result
+  set_fact:
+    del_user_var: "{{ output.stdout[0] | regex_search( del_user_name | string )}}"
+- name: If deletion is unsuccessful
+  include: ../../../../common/Rollback_tftp.yml
+  when: del_user_var != ""
+- name: Confirm configuration
+  ios_command:
+    commands:
+      - configure confirm
+- name: If deletion is successful,write into memory
+  ios_command:
+    commands:
+    - write memory
+  when: del_user_var == ""

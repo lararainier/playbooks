@@ -1,0 +1,8 @@
+---
+- name: Modify v3 configuration present
+  include: pretestv3modifydel.yml
+- include: pretestv3modify.yml
+  when: iscustomer == "false"
+- include: custpretestv3modify.yml
+  when: iscustomer == "true"
+

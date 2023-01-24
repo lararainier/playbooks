@@ -1,0 +1,19 @@
+---
+- debug:
+    msg: "{{groupname}}"
+- name: Delete AuthPriv config
+  ios_config:
+    lines:
+    - no snmp-server user "{{user_name }}" "{{groupname}}" v3 auth "{{ user_SNMPAuthProtocol | default('md5') }}" "{{user_SNMPV3Pass}}" priv "{{ user_SNMPPrivProtocol }}" "{{user_SnmpPrivPassword }}"
+  when: user_SNMPLevel == "authpriv"
+- name: Delete noAuthnoPriv config
+  ios_config:
+    lines:
+    - no snmp-server user "{{ user_name }}" "{{ groupname }}" v3
+  when: user_SNMPLevel == "noAuthnoPriv"
+- name: Delete AuthNoPriv config
+  ios_config:
+    lines:
+    - no snmp-server user "{{ user_name}}" "{{ groupname }}" v3 auth "{{ user_SNMPAuthProtocol | default('md5')}}" "{{ user_SNMPV3Pass }}"
+  when: user_SNMPLevel == "authNopriv"
+

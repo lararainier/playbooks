@@ -1,0 +1,36 @@
+{
+ "ColumnMapping":[   
+      {
+        "name": "SN_CINFO",
+        "dataType": "string",
+        "label": "Serial Number"
+      },
+      {
+        "name": "HN_CINFO",
+        "dataType": "string",
+        "label": "HostName"
+      },
+     
+      {
+        "name": "iscustomer",
+        "dataType": "string",
+        "label": "Customer Monitored? true/false"
+      },
+      {
+        "name": "community_string",
+        "dataType": "string",
+        "label": "Community String to add"
+      },
+      {
+        "name": "new_community_string",
+        "dataType": "string",
+        "label": "Modify Community String"
+      },
+      {
+        "name": "CommunityString",
+        "dataType": "string",
+        "label": "Existing Comm String for SNMP Wal"
+      }
+      ]
+      
+    }

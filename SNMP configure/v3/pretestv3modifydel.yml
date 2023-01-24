@@ -1,0 +1,42 @@
+---
+- name: get User details
+  ios_command:
+    commands:
+      - show snmp user
+  register: output
+- name: Process output
+  set_fact:
+    user_full_value: "{{ output.stdout[0]|parse_cli_textfsm(base_path+'/common/cisco_ios_show_snmp_user.textfsm') }}"
+- name: Setting value
+  set_fact:
+    users_list: "{{users_list}} + ['{{user_full_value[myidx]['''USER_NAME''']}}']"
+  loop: "{{ user_full_value}}"
+  loop_control:
+    index_var: myidx
+- name: view users_list
+  debug:
+    msg: "{{ users_list }}"
+- name: check for presence of our username
+  fail:
+    msg: Username does not exist
+  when: user_name not in users_list
+- name: Finding number of user present
+  set_fact:
+    list_length: "{{ users_list | length }}"
+- debug:
+    msg: "{{group_name}}"
+  when: iscustomer == "true"
+- debug:
+    msg: "{{view_name}}"
+- name: Setting group name for verizon request
+  set_fact:
+    groupname: "VzB-RW"
+  when: iscustomer == "false"
+- name: Setting group name for customer request
+  set_fact:
+    groupname: "{{ group_name }}"
+  when: iscustomer == "true"
+- name: Continue Deletion
+  import_tasks: snmpv3_deletemodify.yml
+
+

@@ -1,0 +1,26 @@
+- name: Confirm configuration
+  ios_command:
+    commands:
+      - configure confirm
+- name: Write to startup config
+  ios_command:
+    commands:
+    - write memory
+  when: del_user_var == ""
+- name: verify startup config
+  ios_command:
+    commands:
+    - show startup-config | sec snmp
+  register: startup_output
+- name: search in result
+  set_fact:
+    start_snmp_var: "{{ startup_output.stdout[0] | regex_search(community_string_delete | string )}}"
+- name: Verify startup config result
+  fail:
+    msg: Start up config write failed
+  when: start_snmp_var == community_string_delete
+- name: If successfully deleted
+  debug:
+    msg: Successfully deleted from startup config
+  when: start_snmp_var == ""
+

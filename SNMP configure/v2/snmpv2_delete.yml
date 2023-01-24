@@ -1,0 +1,26 @@
+---
+- name: Delete SNMP v2 config when access list is present
+  ios_config:
+    lines:
+    - no snmp-server community "{{community_string_delete}}"
+- name: View final SNMP config
+  ios_command:
+    commands:
+    - show run | sec snmp
+- name: Start post check
+  ios_command:
+    commands:
+    - show snmp community
+  register: output
+- name: Process result
+  set_fact:
+    del_user_var: "{{ output.stdout[0] | regex_search( community_string_delete | string )}}"
+- name: If config changes failed
+  include: '{{base_path}}/common/rollback.yml'
+  when: del_user_var != ""
+- name: Write to startup config
+  include: writemem_del_v2.yml
+  when: del_user_var == ""
+
+
+
