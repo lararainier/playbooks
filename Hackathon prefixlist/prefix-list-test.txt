@@ -1,0 +1,2 @@
+ip prefix-list prefix-list-test seq 10 permit 10.0.0.0/24
+ip prefix-list prefix-list-test seq 20 permit 10.10.0.0/16 le 24

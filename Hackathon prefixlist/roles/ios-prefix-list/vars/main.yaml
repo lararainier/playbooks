@@ -1,0 +1,2 @@
+---
+prefixlist_content: "{{ lookup('file', '{{prefixlist_name}}.txt') }}"

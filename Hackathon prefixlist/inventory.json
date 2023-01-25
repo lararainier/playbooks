@@ -1,0 +1,30 @@
+{
+    "all": {
+        "hosts": {
+            "192.168.31.139": {
+                "TacacsUser": "v637186",
+                "ansible_user": "v637186",
+                "SSHUser": "v637186",
+                "TacacsPass": "JetB!u0123",
+                "ansible_password": "JetB!u0123",
+                "SSHPass": "JetB!u0123",
+                "ansible_become_password": "cisco",
+                "ansible_auth_pass": "cisco",
+                "EnablePass": "cisco",
+                "ansible_become": "yes",
+                "MgmtIP": "192.168.31.139",
+                "HN_CINFO": "R29",
+                "DNSEntityName": "deapega-prg3pega-2971097e001",
+                "ansible_network_os": "ios",
+                "ansible_become_method": "enable",
+                "SN_CINFO": "9OH4BAIGQ19AMVKFNIVDU",
+                "EnableUser": "ENABLE",
+                "ansible_connection": "network_cli",
+                "domain": "pdctd20-snmcpe1b.mso.mci.com",
+                "params": {},
+                "ansible_authorize": "yes",
+                "credentials": {}
+            }
+        }
+    }
+}

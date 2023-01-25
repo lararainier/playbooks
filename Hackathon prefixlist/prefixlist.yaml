@@ -1,0 +1,50 @@
+---
+- hosts: all
+  gather_facts: false
+  roles:
+  # Include this role to setup VCATS output files and create VCATS variables
+  - role: vcats_base
+    vars:
+    # Define the format of the output file. Use vcats, etms or direct. Default setting is direct (no additional formatting will be applied)
+    - vcats_output_type: 'direct'
+
+  vars:
+    ansible_connection: network_cli
+    ansible_network_os: ios
+
+  tasks:
+  - block:
+    - name: Run prefix list command from text file
+      vars:
+        prefixlist_name: prefixlist-command
+      import_role:
+        name: ios-prefix-list
+
+    - name: apply prefix-list "{{ prefixlist_name }}" on route-map "{{ routemap_name }}"
+      vars:
+        prefixlist_name: prefixlist-command
+        routemap_name: route-map-test
+      import_role:
+        name: ios-route-map
+
+    - name: Show debug output
+      debug:
+        msg: "Output from {{ ansible_host }}\n---------------------------------------------\n{{ prefixlistout.stdout.0 }}\n\n"
+
+    - name: Record command output
+      set_fact:
+        # If vcats_output_type is set to vcats, set the status to Success or Failed. The status will be published by VCATS.
+        # For other output formats, this field is not required
+        vcats_status: "Success"
+        # Record the output that should be added to the output.dat file for VCATS
+        # When the format is set to etms, you can use the variable ETMS_NEW_CMT to insert a line that will split the output into multiple comments
+        vcats_output: "Output from {{ ansible_host }}\n---------------------------------------------\n{{ prefixlistout.stdout.0 }}\n\n"
+
+    rescue:
+    # This task will be executed if one of the tasks in the block above fails
+    - name: Catch error
+      set_fact:
+        vcats_status: "Failed"
+        vcats_output: "Playbook failed for {{ ansible_host }}\n---------------------------------------------\nSee errorlog for details\n\n"
+        # Store the error in the vcats_error variable. The content of this variable will be written to the VCATS errorfile.
+        vcats_error: "Failed task ''{{ansible_failed_task.name}}'', {{ansible_failed_result | to_json(ensure_ascii=False) }}"

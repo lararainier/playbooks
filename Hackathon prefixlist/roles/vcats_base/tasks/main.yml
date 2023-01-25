@@ -1,0 +1,56 @@
+- block:
+
+  # We'll start with deleting old output file, if they are present
+  # When a playbook is running on VCATS, this is not needed, but it can be 
+  # needed when executing the playbook from the command line
+
+  - name: Delete output.dat if present
+    ansible.builtin.file:
+      path: "{{ outfile }}"
+      state: absent
+    delegate_to: localhost
+
+  - name: Delete errors.log if present
+    ansible.builtin.file:
+      path: "{{ errorfile }}"
+      state: absent
+    delegate_to: localhost
+
+  - name: Delete stdout.log if present
+    ansible.builtin.file:
+      path: "{{ debugfile }}"
+      state: absent
+    delegate_to: localhost
+
+  # If the output type is etms or vcats, the output file requires a header
+  - name: Create output.dat file with format for VCATS
+    ansible.builtin.lineinfile:
+      path: "{{ outfile }}"
+      create: yes
+      line: "parsedevices=true"
+    delegate_to: localhost
+    when: vcats_output_type == 'vcats'
+
+  - name: Create output.dat file format for for ETMS
+    ansible.builtin.lineinfile:
+      path: "{{ outfile }}"
+      create: yes
+      line: "parsecomments=true"
+    delegate_to: localhost
+    when: vcats_output_type == 'etms'
+
+  run_once: true
+
+# Trigger the output handler, which will be executed once all tasks have run
+# The handler will add the output to the output and (if needed) error file
+- name: Trigger VCATS output handler
+  command: /bin/true
+  notify: Write VCATS output to output.dat
+  delegate_to: localhost
+  when: "vcats_output_type == 'vcats'"
+
+- name: Trigger output handler
+  command: /bin/true
+  notify: Write output to output.dat
+  delegate_to: localhost
+  when: "vcats_output_type != 'vcats'"

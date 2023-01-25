@@ -1,0 +1,38 @@
+# Lineinfile is not safe to use for adding output from multiple hosts to a single file
+# Some of the output may not be added to the file. That's why we'll first write a unique file per play
+# and then use a shell command to add the content of that file to the main output file
+#
+---
+- name: Add output to task output file
+  ansible.builtin.lineinfile:
+    path: "{{ outfile }}.{{ inventory_hostname }}"
+    create: yes
+    line: "{{ vcats_output }}"
+  delegate_to: localhost
+
+- name: Append task output file to VCATS output file
+  shell:
+    cmd: "cat {{ outfile }}.{{ inventory_hostname }} >> {{outfile}}"
+  delegate_to: localhost
+
+- name: Delete task output file
+  ansible.builtin.file:
+    path: "{{ outfile }}.{{ inventory_hostname }}"
+    state: absent
+  delegate_to: localhost
+
+- name: Write error if we have any
+  ansible.builtin.lineinfile:
+    path: "{{ errorfile }}"
+    create: yes
+    line: "{{ vcats_error }}"
+  delegate_to: localhost
+  when: vcats_error is defined and vcats_error | length > 0
+
+- name: Write logs if we have any
+  ansible.builtin.lineinfile:
+    path: "{{ debugfile }}"
+    create: yes
+    line: "{{ vcats_log }}"
+  delegate_to: localhost
+  when: vcats_log is defined and vcats_log | length > 0

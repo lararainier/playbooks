@@ -1,0 +1,15 @@
+- name: update route-map {{ routemap_name }} with prefix-list {{ prefixlist_name }}
+  ios_config:
+    lines:
+      - match ip address prefix-list {{ prefixlist_name }}
+    parents: route-map {{ routemap_name }} 
+    before: no route-map {{ routemap_name }}
+    match: exact
+
+- name: show route-map {{ routemap_name }}
+  ios_command:
+    commands: show route-map {{ routemap_name }}
+  register: routemapout
+
+- debug:
+    var=routemapout.stdout_lines

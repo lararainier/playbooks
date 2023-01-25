@@ -1,0 +1,13 @@
+- name: update prefix-list {{ prefixlist_name }} 
+  ios_config:
+    lines: "{{ prefixlist_content }}"
+    before: no ip prefix-list {{ prefixlist_name }}
+    match: exact
+
+- name: show prefix-list {{ prefixlist_name }}
+  ios_command:
+    commands: show ip prefix-list {{ prefixlist_name }}
+  register: prefixlistout
+
+- debug:
+    var=prefixlistout.stdout_lines
